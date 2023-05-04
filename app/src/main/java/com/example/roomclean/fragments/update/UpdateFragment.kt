@@ -5,10 +5,16 @@ import android.os.Bundle
 import android.text.TextUtils
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.get
 import com.example.roomclean.R
@@ -56,6 +62,41 @@ class UpdateFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val menuHost = requireActivity()
+
+        menuHost.addMenuProvider(object : MenuProvider{
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.delete_menu,menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                if (menuItem.itemId == R.id.menu_delete){
+
+                    deleteUser()
+
+                    return true
+                }
+                return false
+            }
+
+        },this.viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun deleteUser(){
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setPositiveButton("Yes"){_,_->
+            mViewModel.deleteUser(currentUser)
+            Toast.makeText(requireContext(),"Successfully deleted!",Toast.LENGTH_SHORT).show()
+            navigator().goBack()
+        }
+        builder.setNegativeButton("No"){_,_->}
+        builder.setTitle("Delete ${currentUser.firstName} ?")
+        builder.setMessage("Are you sure you want to delete ${currentUser.firstName} ?")
+        builder.create().show()
     }
 
     private fun updateUserInDatabase() {
